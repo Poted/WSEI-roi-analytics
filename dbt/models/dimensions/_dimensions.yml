@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Date dimension spanning 2016-2019 (covers both Criteo and Olist date ranges)"
+    columns:
+      - name: date_id
+        description: "Natural key — calendar date"
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_channel
+    description: "Marketing channel taxonomy derived from Olist acquisition channels"
+    columns:
+      - name: channel_id
+        description: "Surrogate key"
+        data_tests:
+          - unique
+          - not_null
+      - name: channel_key
+        description: "Raw origin value from Olist (e.g. organic_search)"
+        data_tests:
+          - unique
+          - not_null

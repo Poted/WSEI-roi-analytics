@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: fact_touchpoints
+    description: "Grain: one ad click per user per campaign. Source: Criteo."
+    columns:
+      - name: touchpoint_id
+        data_tests: [unique, not_null]
+      - name: user_id
+        data_tests: [not_null]
+      - name: click_cost
+        data_tests: [not_null]
+
+  - name: fact_conversions
+    description: "Grain: one completed conversion journey per user. Source: Criteo."
+    columns:
+      - name: conversion_id
+        data_tests: [unique, not_null]
+
+  - name: fact_orders
+    description: "Grain: one e-commerce order. Source: Olist."
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: fact_leads
+    description: "Grain: one MQL from the marketing funnel. Source: Olist."
+    columns:
+      - name: mql_id
+        data_tests: [unique, not_null]

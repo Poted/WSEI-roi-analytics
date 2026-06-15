@@ -1,0 +1,81 @@
+version: 2
+
+sources:
+  - name: olist
+    schema: raw
+    description: "Olist Brazilian e-commerce + marketing funnel datasets"
+    tables:
+      - name: olist_leads_qualified
+        description: "Marketing qualified leads (MQLs) — 8k leads with acquisition channel"
+        columns:
+          - name: mql_id
+            description: "Unique MQL identifier"
+          - name: first_contact_date
+            description: "Date of first contact"
+          - name: landing_page_id
+            description: "Landing page that captured the lead"
+          - name: origin
+            description: "Marketing channel (organic_search, paid_search, social, email, referral, direct_traffic)"
+
+      - name: olist_leads_closed
+        description: "Leads that converted to sellers (closed deals) — 842 rows"
+        columns:
+          - name: mql_id
+            description: "Join key to olist_leads_qualified"
+          - name: seller_id
+            description: "Seller ID in the marketplace"
+          - name: won_date
+            description: "Date the deal was closed"
+          - name: business_segment
+            description: "Business segment of the seller"
+          - name: lead_type
+            description: "Type of lead"
+          - name: lead_behaviour_profile
+            description: "Behavioural profile of the lead"
+          - name: business_type
+            description: "Reseller / manufacturer / other"
+          - name: declared_product_catalog_size
+            description: "Number of products the seller intends to list"
+          - name: declared_monthly_revenue
+            description: "Declared monthly revenue of the seller (BRL)"
+
+      - name: olist_orders
+        description: "Customer orders — 100k orders"
+        columns:
+          - name: order_id
+          - name: customer_id
+          - name: order_status
+          - name: order_purchase_timestamp
+          - name: order_approved_at
+          - name: order_delivered_carrier_date
+          - name: order_delivered_customer_date
+          - name: order_estimated_delivery_date
+
+      - name: olist_order_payments
+        description: "Payment records per order"
+        columns:
+          - name: order_id
+          - name: payment_sequential
+          - name: payment_type
+          - name: payment_installments
+          - name: payment_value
+
+      - name: olist_order_items
+        description: "Items within each order"
+        columns:
+          - name: order_id
+          - name: order_item_id
+          - name: product_id
+          - name: seller_id
+          - name: shipping_limit_date
+          - name: price
+          - name: freight_value
+
+      - name: olist_customers
+        description: "Customer dimension"
+        columns:
+          - name: customer_id
+          - name: customer_unique_id
+          - name: customer_zip_code_prefix
+          - name: customer_city
+          - name: customer_state

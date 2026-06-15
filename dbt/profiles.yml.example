@@ -1,0 +1,12 @@
+roi_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: analytics
+      password: <POSTGRES_PASSWORD from .env>
+      dbname: roi_analytics
+      schema: public
+      threads: 4
