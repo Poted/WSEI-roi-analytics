@@ -22,9 +22,11 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Jupyter checkpoints
+# Jupyter — only ignore checkpoint dirs, not notebooks themselves
 .ipynb_checkpoints/
-notebooks/*.ipynb
+
+# IDE
+.vscode/
 
 # OS
 .DS_Store

@@ -5,26 +5,35 @@ with source as (
 renamed as (
     select
         uid::text                                                   as user_id,
-        timestamp::bigint                                          as click_timestamp_unix,
-        to_timestamp(timestamp::bigint)                            as clicked_at,
-        date_trunc('day', to_timestamp(timestamp::bigint))::date   as click_date,
+
+        -- Criteo timestamps are relative seconds from dataset start (anonymised).
+        -- They are NOT unix epoch; to_timestamp() will produce 1970-01-01 dates.
+        -- Keep raw value for intra-journey ordering; real dates unavailable.
+        timestamp::bigint                                           as click_timestamp_rel,
 
         campaign::text                                             as campaign_id,
 
+        click::int                                                 as is_click,
         coalesce(conversion::int, 0)                               as is_conversion_journey,
-        case
-            when conversion_timestamp is null or conversion_timestamp::text = ''
-            then null
-            else to_timestamp(conversion_timestamp::bigint)
-        end                                                        as converted_at,
-        conversion_id::text                                        as conversion_id,
+        coalesce(attribution::int, 0)                              as criteo_attribution,
 
-        coalesce(click_pos::int, 1)                                as click_position,
-        coalesce(click_nb::int, 1)                                 as total_clicks_in_journey,
+        -- -1 sentinel means "no conversion"; replace with NULL
+        case when conversion_id::bigint = -1
+            then null
+            else conversion_id::text
+        end                                                        as conversion_id,
+        case when conversion_timestamp::bigint = -1
+            then null
+            else conversion_timestamp::bigint
+        end                                                        as conversion_timestamp_rel,
+
+        -- -1 sentinel means "impression, not a click"; replace with NULL
+        nullif(click_pos::int, -1)                                 as click_position,
+        nullif(click_nb::int, -1)                                  as total_clicks_in_journey,
 
         coalesce(cost::numeric, 0)                                 as click_cost,
         cpo::numeric                                               as cost_per_order,
-        time_since_last_click::numeric                             as seconds_since_last_click,
+        nullif(time_since_last_click::bigint, -1)                  as seconds_since_last_click,
 
         cat1::text  as category_1,
         cat2::text  as category_2,
@@ -35,6 +44,7 @@ renamed as (
         cat7::text  as category_7,
         cat8::text  as category_8,
         cat9::text  as category_9
+
     from source
     where uid is not null
       and timestamp is not null

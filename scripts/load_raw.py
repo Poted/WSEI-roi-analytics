@@ -1,5 +1,6 @@
-"""Load raw CSV/TSV files from data/ into PostgreSQL raw schema."""
+"""Load raw CSV/TSV files from data/ into PostgreSQL raw schema via COPY."""
 
+import io
 import logging
 import os
 from pathlib import Path
@@ -17,10 +18,9 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 DB_URL = os.getenv("DATABASE_URL")
 if not DB_URL:
     raise EnvironmentError("DATABASE_URL is not set. Copy .env.example to .env and fill in the values.")
+
 CHUNK_SIZE = 200_000
 
-# Maps raw table name -> file path (relative to DATA_DIR)
-# Criteo filename may vary depending on Kaggle upload version; we auto-detect.
 OLIST_FILES = {
     "olist_customers":       "olist/olist_customers_dataset.csv",
     "olist_orders":          "olist/olist_orders_dataset.csv",
@@ -34,7 +34,6 @@ OLIST_FILES = {
 
 
 def detect_criteo_file() -> Path | None:
-    """Return path to the Criteo TSV/CSV file (name varies by upload)."""
     criteo_dir = DATA_DIR / "criteo"
     for pattern in ["*.tsv.gz", "*.tsv", "*.csv.gz", "*.csv"]:
         matches = list(criteo_dir.glob(pattern))
@@ -46,25 +45,40 @@ def detect_criteo_file() -> Path | None:
 def load_table(engine, table_name: str, file_path: Path, sep: str = ",") -> None:
     log.info("Loading %s from %s...", table_name, file_path.name)
 
-    reader = pd.read_csv(
-        file_path,
-        sep=sep,
-        chunksize=CHUNK_SIZE,
-        low_memory=False,
-    )
-
+    reader = pd.read_csv(file_path, sep=sep, chunksize=CHUNK_SIZE, low_memory=False)
     total_rows = 0
+    cols_str = None
+
     for i, chunk in enumerate(reader):
         chunk.columns = [c.strip().lower().replace(" ", "_") for c in chunk.columns]
-        if_exists = "replace" if i == 0 else "append"
-        chunk.to_sql(
-            name=table_name,
-            con=engine,
-            schema="raw",
-            if_exists=if_exists,
-            index=False,
-            method="multi",
-        )
+
+        if i == 0:
+            # Create table schema from first chunk's dtypes (no data inserted here).
+            with engine.begin() as conn:
+                chunk.head(0).to_sql(
+                    name=table_name,
+                    con=conn,
+                    schema="raw",
+                    if_exists="replace",
+                    index=False,
+                )
+            cols_str = ", ".join(chunk.columns)
+
+        # Stream each chunk as CSV into PostgreSQL via COPY.
+        # COPY has no parameter limits and is ~10x faster than INSERT VALUES.
+        # NaN → \N so PostgreSQL treats them as NULL.
+        buf = io.StringIO()
+        chunk.to_csv(buf, index=False, header=False, na_rep="\\N")
+        buf.seek(0)
+
+        with engine.begin() as conn:
+            cur = conn.connection.cursor()
+            cur.copy_expert(
+                f"COPY raw.{table_name} ({cols_str}) FROM STDIN"
+                f" WITH (FORMAT CSV, NULL '\\N')",
+                buf,
+            )
+
         total_rows += len(chunk)
         log.info("  chunk %d — %d rows so far", i + 1, total_rows)
 
@@ -72,18 +86,17 @@ def load_table(engine, table_name: str, file_path: Path, sep: str = ",") -> None
 
 
 def main() -> None:
-    engine = create_engine(DB_URL)
+    engine = create_engine(DB_URL, pool_pre_ping=True)
 
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw"))
-        conn.commit()
 
     # --- Criteo ---
     criteo_file = detect_criteo_file()
     if criteo_file is None:
         log.warning("Criteo file not found in data/criteo/. Run 'make download' first.")
     else:
-        sep = "\t" if criteo_file.suffix in (".tsv", ".gz") and "tsv" in criteo_file.name else ","
+        sep = "\t" if "tsv" in criteo_file.name else ","
         load_table(engine, "criteo_events", criteo_file, sep=sep)
 
     # --- Olist ---

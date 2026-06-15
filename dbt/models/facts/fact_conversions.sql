@@ -1,38 +1,39 @@
 {{ config(materialized='table') }}
 
+-- One row per converting user journey (is_conversion_journey = 1).
+-- Timestamps are relative seconds (Criteo anonymised data), not calendar dates.
+-- journey_span_seconds: duration of journey in relative seconds.
+
 with converting_journeys as (
     select
         user_id,
-        min(clicked_at)             as first_touch_at,
-        max(clicked_at)             as last_touch_at,
-        max(converted_at)           as converted_at,
-        max(converted_at)::date     as conversion_date,
-        max(total_clicks_in_journey) as total_touches,
-        sum(click_cost)             as total_journey_cost,
-        max(cost_per_order)         as cost_per_order
+        conversion_id,
+        max(total_clicks_in_journey)            as total_touches,
+        min(click_timestamp_rel)                as first_touch_rel,
+        max(click_timestamp_rel)                as last_touch_rel,
+        max(conversion_timestamp_rel)           as conversion_timestamp_rel,
+        sum(click_cost)                         as total_journey_cost,
+        max(cost_per_order)                     as cost_per_order
     from {{ ref('fact_touchpoints') }}
     where is_conversion_journey = 1
-    group by user_id
+      and conversion_id is not null
+    group by user_id, conversion_id
 ),
 
 final as (
     select
-        {{ dbt_utils.generate_surrogate_key(['user_id', 'converted_at']) }}
-                                                as conversion_id,
+        {{ dbt_utils.generate_surrogate_key(['user_id', 'conversion_id']) }}
+                                                as conversion_key,
         user_id,
-        conversion_date                         as date_id,
-        first_touch_at,
-        last_touch_at,
-        converted_at,
+        conversion_id,
         total_touches,
+        first_touch_rel,
+        last_touch_rel,
+        conversion_timestamp_rel,
+        (last_touch_rel - first_touch_rel)      as journey_span_seconds,
         total_journey_cost,
-        cost_per_order,
-        coalesce(
-            extract(epoch from (converted_at - first_touch_at)) / 86400.0,
-            0
-        )::numeric(10,2)                        as journey_days
+        cost_per_order
     from converting_journeys
-    where converted_at is not null
 )
 
 select * from final

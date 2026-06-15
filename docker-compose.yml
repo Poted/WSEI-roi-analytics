@@ -6,6 +6,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      # Allow password-authenticated connections from any host.
+      # Port is bound to 127.0.0.1 only, so this is safe for local dev.
+      # Needed because Docker Desktop on Windows routes host→container
+      # traffic via the bridge network (172.x.x.x), not 127.0.0.1.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

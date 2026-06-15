@@ -1,5 +1,7 @@
 .PHONY: up down logs download load dbt-deps dbt-run dbt-test dbt-docs setup
 
+DBT = python scripts/dbt_runner.py
+
 # ---------- Infrastructure ----------
 up:
 	docker compose up -d
@@ -20,16 +22,16 @@ load:
 
 # ---------- dbt ----------
 dbt-deps:
-	cd dbt && dbt deps
+	$(DBT) deps
 
 dbt-run:
-	cd dbt && dbt run
+	$(DBT) run
 
 dbt-test:
-	cd dbt && dbt test
+	$(DBT) test
 
 dbt-docs:
-	cd dbt && dbt docs generate && dbt docs serve --port 8080
+	$(DBT) docs generate && $(DBT) docs serve --port 8080
 
 # ---------- Full setup (first time) ----------
 setup: up
