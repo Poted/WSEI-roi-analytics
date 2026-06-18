@@ -1,0 +1,50 @@
+version: 2
+
+sources:
+  - name: criteo
+    schema: raw
+    description: "Criteo Attribution Modeling for Bidding dataset — 30 days of live ad traffic"
+    tables:
+      - name: criteo_events
+        description: "One row per ad click/impression in a user journey"
+        columns:
+          - name: timestamp
+            description: "Unix timestamp of the click event"
+          - name: uid
+            description: "Anonymised user/visitor ID"
+          - name: campaign
+            description: "Anonymised campaign ID"
+          - name: conversion
+            description: "1 if this user journey resulted in a conversion, else 0"
+          - name: conversion_timestamp
+            description: "Unix timestamp of the conversion (null if no conversion)"
+          - name: conversion_id
+            description: "Conversion identifier"
+          - name: click_pos
+            description: "Position of this click in the user's journey (1 = first)"
+          - name: click_nb
+            description: "Total number of clicks in the user's journey"
+          - name: cost
+            description: "Cost of this click (display ad bid)"
+          - name: cpo
+            description: "Cost-per-order for this conversion journey"
+          - name: time_since_last_click
+            description: "Seconds since the previous click in the journey"
+          - name: cat1
+            description: "Anonymised product category 1"
+          - name: cat2
+            description: "Anonymised product category 2"
+          - name: cat3
+            description: "Anonymised product category 3"
+          - name: cat4
+            description: "Anonymised product category 4"
+          - name: cat5
+            description: "Anonymised product category 5"
+          - name: cat6
+            description: "Anonymised product category 6"
+          - name: cat7
+            description: "Anonymised product category 7"
+          - name: cat8
+            description: "Anonymised product category 8"
+          - name: cat9
+            description: "Anonymised product category 9"

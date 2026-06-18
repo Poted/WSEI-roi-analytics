@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: mart_attribution_last_click
+    description: "Last-click attribution — 100% credit to final touchpoint before conversion. Source: Criteo."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+      - name: attribution_model
+        data_tests: [not_null]
+
+  - name: mart_attribution_first_click
+    description: "First-click attribution — 100% credit to first touchpoint. Source: Criteo."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+
+  - name: mart_attribution_linear
+    description: "Linear attribution — equal credit distributed across all touchpoints."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+
+  - name: mart_attribution_time_decay
+    description: "Time-decay attribution — exponential decay weighting (half-life=7 positions), more credit to recent touches."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+
+  - name: mart_attribution_position_based
+    description: "Position-based (U-shape) — 40% first, 40% last, 20% split across middle touches."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+
+  - name: mart_attribution_comparison
+    description: "All five models unioned — one row per (campaign, model). Use for model comparison charts."

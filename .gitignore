@@ -1,0 +1,34 @@
+# Data files — download locally, never commit
+data/criteo/*
+data/olist/*
+!data/criteo/.gitkeep
+!data/olist/.gitkeep
+
+# Environment — no .env files of any kind in version control
+.env*
+
+# dbt artifacts
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+dbt/.user.yml
+dbt/profiles.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Jupyter — only ignore checkpoint dirs, not notebooks themselves
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

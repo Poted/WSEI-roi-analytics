@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_channel_funnel
+    description: "Marketing funnel metrics by acquisition channel (Olist): leads, closed deals, conversion rate, avg deal value."
+    columns:
+      - name: acquisition_channel
+        data_tests: [not_null, unique]
+
+  - name: mart_channel_cpa
+    description: "Cost-per-acquisition by campaign (Criteo): spend, conversions, CPA under last-click and first-click models."
+    columns:
+      - name: campaign_id
+        data_tests: [not_null, unique]
+
+  - name: mart_channel_value
+    description: "Revenue and pipeline value by acquisition channel (Olist): declared revenue, GMV, annual potential."
+    columns:
+      - name: acquisition_channel
+        data_tests: [not_null, unique]
